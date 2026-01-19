@@ -19,6 +19,25 @@ export interface SquarePaymentInfo {
   amountOwed: number;
 }
 
+export interface MySquareWithBadges {
+  square: Square;
+  homeNum: number | string;
+  awayNum: number | string;
+  badges: string[];
+  isCurrentWinner: boolean;
+}
+
+export interface ScoreChangeScenario {
+  label: string;
+  homeScore: number;
+  awayScore: number;
+  owner: string | null;
+  displayName: string | null;
+  homeNum: number;
+  awayNum: number;
+  isMine: boolean;
+}
+
 class GameComputedStore {
   constructor() {
     makeAutoObservable(this);
@@ -95,7 +114,7 @@ class GameComputedStore {
       { label: "Q1", index: 0, payout: totalPot * 0.2, isFinal: false },
       { label: "Q2", index: 1, payout: totalPot * 0.2, isFinal: false },
       { label: "Q3", index: 2, payout: totalPot * 0.2, isFinal: false },
-      { label: "Final", index: 3, payout: totalPot * 0.4, isFinal: true },
+      { label: "F", index: 3, payout: totalPot * 0.4, isFinal: true },
     ];
 
     return quarters.map(({ label, index, payout, isFinal }) => {
@@ -139,7 +158,9 @@ class GameComputedStore {
     const square = boardStore.squares[pos.row]?.[pos.col];
     const homeTeam = scoreStore.homeTeamAbbr;
     const awayTeam = scoreStore.awayTeamAbbr;
-    const scoreStr = `${awayTeam} ${awayCumulative}, ${homeTeam} ${homeCumulative}`;
+    const homeNum = boardStore.colNumbers[pos.col];
+    const awayNum = boardStore.rowNumbers[pos.row];
+    const scoreStr = `${homeTeam} ${homeNum}, ${awayTeam} ${awayNum}`;
 
     if (!square?.claimedBy) {
       return { displayName: "Unclaimed", score: scoreStr };
@@ -183,6 +204,84 @@ class GameComputedStore {
       row: boardStore.rowNumbers[square.row],
       col: boardStore.colNumbers[square.col],
     };
+  }
+
+  get mySquaresWithBadges(): MySquareWithBadges[] {
+    const winningBadges = this.winningBadges;
+    const winningPos = this.winningPosition;
+
+    const squaresWithBadges = this.mySquares.map((square) => {
+      const key = `${square.row}-${square.col}`;
+      const badges = winningBadges[key] || [];
+      const nums = this.getSquareNumbers(square);
+      const isCurrentWinner = winningPos?.row === square.row && winningPos?.col === square.col;
+
+      return {
+        square,
+        homeNum: nums.col,
+        awayNum: nums.row,
+        badges,
+        isCurrentWinner,
+      };
+    });
+
+    // Sort: winning squares first, then by badges count, then by position
+    return squaresWithBadges.sort((a, b) => {
+      if (a.isCurrentWinner !== b.isCurrentWinner) {
+        return a.isCurrentWinner ? -1 : 1;
+      }
+      if (a.badges.length !== b.badges.length) {
+        return b.badges.length - a.badges.length;
+      }
+      return 0;
+    });
+  }
+
+  get scoreChangeScenarios(): ScoreChangeScenario[] {
+    if (!boardStore.numbersLocked || !scoreStore.gameScore) {
+      return [];
+    }
+
+    const game = scoreStore.gameScore;
+    const homeScore = game.home.score;
+    const awayScore = game.away.score;
+    const homeTeam = scoreStore.homeTeamAbbr;
+    const awayTeam = scoreStore.awayTeamAbbr;
+    const username = authStore.username;
+
+    const scenarios: { label: string; homeDelta: number; awayDelta: number }[] = [
+      { label: `${homeTeam} TD`, homeDelta: 7, awayDelta: 0 },
+      { label: `${homeTeam} FG`, homeDelta: 3, awayDelta: 0 },
+      { label: `${awayTeam} TD`, awayDelta: 7, homeDelta: 0 },
+      { label: `${awayTeam} FG`, awayDelta: 3, homeDelta: 0 },
+      { label: `${homeTeam} TD+2`, homeDelta: 8, awayDelta: 0 },
+      { label: `${awayTeam} TD+2`, awayDelta: 8, homeDelta: 0 },
+      { label: `${homeTeam} TD+Miss`, homeDelta: 6, awayDelta: 0 },
+      { label: `${awayTeam} TD+Miss`, awayDelta: 6, homeDelta: 0 },
+      { label: `${homeTeam} Safety`, homeDelta: 2, awayDelta: 0 },
+      { label: `${awayTeam} Safety`, awayDelta: 2, homeDelta: 0 },
+    ];
+
+    return scenarios.map(({ label, homeDelta, awayDelta }) => {
+      const newHomeScore = homeScore + homeDelta;
+      const newAwayScore = awayScore + awayDelta;
+      const pos = this.getWinningPosition(newHomeScore, newAwayScore);
+
+      const square = pos.row !== -1 && pos.col !== -1
+        ? boardStore.squares[pos.row]?.[pos.col]
+        : null;
+
+      return {
+        label,
+        homeScore: newHomeScore,
+        awayScore: newAwayScore,
+        owner: square?.claimedBy || null,
+        displayName: square?.displayName || square?.claimedBy || null,
+        homeNum: newHomeScore % 10,
+        awayNum: newAwayScore % 10,
+        isMine: square?.claimedBy === username,
+      };
+    });
   }
 }
 

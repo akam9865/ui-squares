@@ -9,6 +9,7 @@ import { AdminPanel } from "@/components/AdminPanel";
 import { Score } from "@/components/Score";
 import { MySquares } from "@/components/MySquares";
 import { QuarterPayouts } from "@/components/QuarterPayouts";
+import { FutureWinners } from "@/components/FutureWinners";
 
 const BoardPage = observer(function BoardPage() {
   const params = useParams<{ boardId: string }>();
@@ -22,24 +23,27 @@ const BoardPage = observer(function BoardPage() {
     <>
       <AdminPanel />
 
-        <div className="flex justify-center gap-6">
-          <div className="w-64 mt-[84px]">
-            <MySquares onSquareHover={setHoveredSquare} />
-          </div>
-          <Board boardId={boardId} hoveredSquare={hoveredSquare} />
-          <div className="flex flex-col gap-4 w-64 mt-[84px] h-[640px]">
-            {boardStore.gameId && (
-              <>
-                <Score
-                  gameId={boardStore.gameId}
-                  sport={boardStore.sport}
-                  pollInterval={10000}
-                />
-                <QuarterPayouts />
-              </>
-            )}
-          </div>
+      <div className="flex justify-center gap-6 mt-20">
+        <div className="flex flex-col gap-4 w-64">
+          {boardStore.gameId && (
+            <Score
+              gameId={boardStore.gameId}
+              sport={boardStore.sport}
+              pollInterval={10000}
+            />
+          )}
+          <MySquares onSquareHover={setHoveredSquare} />
         </div>
+        <Board boardId={boardId} hoveredSquare={hoveredSquare} />
+        <div className="flex flex-col gap-4 w-64">
+          {boardStore.gameId && (
+            <>
+              <QuarterPayouts />
+              <FutureWinners />
+            </>
+          )}
+        </div>
+      </div>
     </>
   );
 });

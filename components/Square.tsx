@@ -5,12 +5,13 @@ import { Square as SquareType } from "@/types";
 import { boardStore } from "@/stores/BoardStore";
 import { authStore } from "@/stores/AuthStore";
 import { useState } from "react";
+import { WinningBadge, Quarter } from "./WinningBadge";
 
 interface SquareProps {
   square: SquareType;
   isWinning?: boolean;
   isHovered?: boolean;
-  winningBadges?: string[];
+  winningBadges?: Quarter[];
 }
 
 export const Square = observer(function Square({ square, isWinning = false, isHovered = false, winningBadges = [] }: SquareProps) {
@@ -18,9 +19,24 @@ export const Square = observer(function Square({ square, isWinning = false, isHo
 
   const isClaimed = !!square.claimedBy;
   const isClaimedByMe = square.claimedBy === authStore.username;
+  const canUnclaim = isClaimedByMe && !square.paid;
 
   const handleClick = async () => {
-    if (isClaimed || isClaiming) return;
+    if (isClaiming) return;
+
+    // If it's claimed by me and unpaid, unclaim it
+    if (canUnclaim) {
+      setIsClaiming(true);
+      const result = await boardStore.unclaimSquare(square.row, square.col);
+      if (!result.success) {
+        alert(result.error || "Failed to unclaim square");
+      }
+      setIsClaiming(false);
+      return;
+    }
+
+    // Otherwise, try to claim if not already claimed
+    if (isClaimed) return;
 
     setIsClaiming(true);
     const result = await boardStore.claimSquare(square.row, square.col);
@@ -40,20 +56,28 @@ export const Square = observer(function Square({ square, isWinning = false, isHo
       )}
       <button
         onClick={handleClick}
-        disabled={isClaimed || isClaiming}
+        disabled={(isClaimed && !canUnclaim) || isClaiming}
         className={`
           aspect-square w-full h-full flex items-center justify-center text-[10px] font-medium
           transition-colors p-1 overflow-hidden border border-gray-300
           ${
             isClaimed
               ? isClaimedByMe
-                ? "bg-blue-100 text-blue-900 cursor-default"
+                ? canUnclaim
+                  ? "bg-blue-100 text-blue-900 cursor-pointer hover:bg-red-50"
+                  : "bg-blue-100 text-blue-900 cursor-default"
                 : "bg-gray-100 text-gray-700 cursor-default"
               : "bg-white hover:bg-blue-50 cursor-pointer"
           }
           ${isClaiming ? "opacity-50" : ""}
         `}
-        title={square.owner ? `${square.displayName} (Owner: ${square.owner})` : square.displayName || "Available"}
+        title={
+          canUnclaim
+            ? "Click to unclaim (unpaid)"
+            : square.owner
+            ? `${square.displayName} (Owner: ${square.owner})`
+            : square.displayName || "Available"
+        }
       >
         <span className="truncate leading-tight text-center">
           {isClaimed ? square.displayName : ""}
@@ -67,14 +91,7 @@ export const Square = observer(function Square({ square, isWinning = false, isHo
       {winningBadges.length > 0 && (
         <div className="absolute bottom-0.5 left-0.5 flex gap-0.5 pointer-events-none">
           {winningBadges.map((badge) => (
-            <div
-              key={badge}
-              className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                badge === "F" ? "bg-yellow-500" : "bg-purple-500"
-              }`}
-            >
-              <span className="text-[7px] font-bold text-white">{badge}</span>
-            </div>
+            <WinningBadge key={badge} quarter={badge} size="sm" />
           ))}
         </div>
       )}

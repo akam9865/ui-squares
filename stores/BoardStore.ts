@@ -135,6 +135,37 @@ class BoardStore {
     }
   }
 
+  async unclaimSquare(
+    row: number,
+    col: number
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!this.boardId) {
+      return { success: false, error: "No board selected" };
+    }
+
+    try {
+      const response = await fetch(`/api/board/${this.boardId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ row, col }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error };
+      }
+
+      runInAction(() => {
+        this.updateFromState(data.boardState);
+      });
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "Failed to unclaim square" };
+    }
+  }
+
   async randomizeNumbers(): Promise<{ success: boolean; error?: string }> {
     if (!this.boardId) {
       return { success: false, error: "No board selected" };

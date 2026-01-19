@@ -312,6 +312,46 @@ export async function clearSquare(
   return { success: true };
 }
 
+export async function unclaimSquare(
+  boardId: string,
+  row: number,
+  col: number,
+  username: string
+): Promise<{ success: boolean; error?: string }> {
+  const state = await getBoardState(boardId);
+  const square = state.squares[row]?.[col];
+
+  if (!square) {
+    return { success: false, error: "Invalid square position" };
+  }
+
+  if (!square.claimedBy) {
+    return { success: false, error: "Square not claimed" };
+  }
+
+  if (square.claimedBy !== username) {
+    return { success: false, error: "You can only unclaim your own squares" };
+  }
+
+  if (square.paid) {
+    return { success: false, error: "Cannot unclaim paid squares" };
+  }
+
+  state.squares[row][col] = {
+    row,
+    col,
+    claimedBy: null,
+    claimedAt: null,
+    displayName: null,
+    owner: null,
+    paid: false,
+    paidAt: null,
+  };
+
+  await setBoardState(boardId, state);
+  return { success: true };
+}
+
 export async function setSquareOwner(
   boardId: string,
   row: number,
