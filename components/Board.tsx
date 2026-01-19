@@ -12,7 +12,7 @@ interface BoardProps {
   hoveredSquare?: { row: number; col: number } | null;
 }
 
-export const Board = observer(function Board({ boardId, hoveredSquare }: BoardProps) {
+export const Board = observer(({ boardId, hoveredSquare }: BoardProps) => {
   useEffect(() => {
     boardStore.startPolling(boardId);
     return () => {
@@ -68,7 +68,9 @@ export const Board = observer(function Board({ boardId, hoveredSquare }: BoardPr
 
       <div className="flex">
         <div className="w-8 flex items-center justify-center">
-          <span className="text-xl font-bold text-red-600 -rotate-90 whitespace-nowrap">{awayTeamName}</span>
+          <span className="text-xl font-bold text-red-600 -rotate-90 whitespace-nowrap">
+            {awayTeamName}
+          </span>
         </div>
         <div className="flex flex-col">
           {displayRowNumbers.map((num, idx) => (
@@ -90,8 +92,14 @@ export const Board = observer(function Board({ boardId, hoveredSquare }: BoardPr
                   <div key={`${rowIdx}-${colIdx}`} className="w-16 h-16">
                     <Square
                       square={square}
-                      isWinning={winningPosition?.row === rowIdx && winningPosition?.col === colIdx}
-                      isHovered={hoveredSquare?.row === rowIdx && hoveredSquare?.col === colIdx}
+                      isWinning={
+                        winningPosition?.row === rowIdx &&
+                        winningPosition?.col === colIdx
+                      }
+                      isHovered={
+                        hoveredSquare?.row === rowIdx &&
+                        hoveredSquare?.col === colIdx
+                      }
                       winningBadges={badges}
                     />
                   </div>

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
 import { authStore } from "@/stores/AuthStore";
 
-const LoginPage = observer(function LoginPage() {
+const LoginPage = observer(() => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect");
@@ -35,7 +35,10 @@ const LoginPage = observer(function LoginPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Squares Board Inc.</h1>
         </div>
-        <div className="flex items-center justify-center" style={{ minHeight: "calc(100vh - 120px)" }}>
+        <div
+          className="flex items-center justify-center"
+          style={{ minHeight: "calc(100vh - 120px)" }}
+        >
           <LoginForm redirectTo={redirectTo || undefined} />
         </div>
       </div>

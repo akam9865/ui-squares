@@ -14,7 +14,7 @@ interface SquareProps {
   winningBadges?: Quarter[];
 }
 
-export const Square = observer(function Square({ square, isWinning = false, isHovered = false, winningBadges = [] }: SquareProps) {
+export const Square = observer(({ square, isWinning = false, isHovered = false, winningBadges = [] }: SquareProps) => {
   const [isClaiming, setIsClaiming] = useState(false);
 
   const isClaimed = !!square.claimedBy;

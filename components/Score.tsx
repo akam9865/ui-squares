@@ -13,13 +13,13 @@ interface ScoreProps {
   pollInterval?: number;
 }
 
-export const Score = observer(function Score({
+export const Score = observer(({
   gameId,
   team1,
   team2,
   sport = "nfl",
   pollInterval = 10000,
-}: ScoreProps) {
+}: ScoreProps) => {
   useEffect(() => {
     if (gameId) {
       scoreStore.setGameId(gameId, sport);

@@ -9,7 +9,7 @@ interface LoginFormProps {
   redirectTo?: string;
 }
 
-export const LoginForm = observer(function LoginForm({ redirectTo }: LoginFormProps) {
+export const LoginForm = observer(({ redirectTo }: LoginFormProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

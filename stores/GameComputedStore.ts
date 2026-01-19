@@ -3,9 +3,10 @@ import { boardStore } from "./BoardStore";
 import { scoreStore } from "./ScoreStore";
 import { authStore } from "./AuthStore";
 import { Square } from "@/types";
+import { Quarter, Quarters } from "@/components/WinningBadge";
 
 export interface QuarterWinner {
-  label: string;
+  label: Quarter;
   payout: number;
   winner: {
     displayName: string;
@@ -23,7 +24,7 @@ export interface MySquareWithBadges {
   square: Square;
   homeNum: number | string;
   awayNum: number | string;
-  badges: string[];
+  badges: Quarter[];
   isCurrentWinner: boolean;
 }
 
@@ -65,15 +66,15 @@ class GameComputedStore {
     return pos;
   }
 
-  get winningBadges(): Record<string, string[]> {
-    const badges: Record<string, string[]> = {};
+  get winningBadges(): Record<string, Quarter[]> {
+    const badges: Record<string, Quarter[]> = {};
 
     if (!boardStore.numbersLocked || !scoreStore.gameScore) {
       return badges;
     }
 
     const cumulativeScores = scoreStore.cumulativeScores;
-    const quarters = ["Q1", "Q2", "Q3"];
+    const quarterKeys = [Quarters.Q1, Quarters.Q2, Quarters.Q3] as const;
 
     // Q1, Q2, Q3 - use cumulative scores
     for (let i = 0; i < 3; i++) {
@@ -83,7 +84,7 @@ class GameComputedStore {
         if (pos.row !== -1 && pos.col !== -1) {
           const key = `${pos.row}-${pos.col}`;
           if (!badges[key]) badges[key] = [];
-          badges[key].push(quarters[i]);
+          badges[key].push(quarterKeys[i]);
         }
       }
     }
@@ -97,7 +98,7 @@ class GameComputedStore {
       if (pos.row !== -1 && pos.col !== -1) {
         const key = `${pos.row}-${pos.col}`;
         if (!badges[key]) badges[key] = [];
-        badges[key].push("F");
+        badges[key].push(Quarters.F);
       }
     }
 
@@ -111,10 +112,10 @@ class GameComputedStore {
   get quarterWinners(): QuarterWinner[] {
     const totalPot = this.totalPot;
     const quarters = [
-      { label: "Q1", index: 0, payout: totalPot * 0.2, isFinal: false },
-      { label: "Q2", index: 1, payout: totalPot * 0.2, isFinal: false },
-      { label: "Q3", index: 2, payout: totalPot * 0.2, isFinal: false },
-      { label: "F", index: 3, payout: totalPot * 0.4, isFinal: true },
+      { label: Quarters.Q1, index: 0, payout: totalPot * 0.2, isFinal: false },
+      { label: Quarters.Q2, index: 1, payout: totalPot * 0.2, isFinal: false },
+      { label: Quarters.Q3, index: 2, payout: totalPot * 0.2, isFinal: false },
+      { label: Quarters.F, index: 3, payout: totalPot * 0.4, isFinal: true },
     ];
 
     return quarters.map(({ label, index, payout, isFinal }) => {

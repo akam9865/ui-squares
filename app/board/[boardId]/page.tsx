@@ -11,7 +11,7 @@ import { MySquares } from "@/components/MySquares";
 import { QuarterPayouts } from "@/components/QuarterPayouts";
 import { FutureWinners } from "@/components/FutureWinners";
 
-const BoardPage = observer(function BoardPage() {
+const BoardPage = observer(() => {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
   const [hoveredSquare, setHoveredSquare] = useState<{

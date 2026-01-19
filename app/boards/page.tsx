@@ -8,7 +8,7 @@ import { authStore } from "@/stores/AuthStore";
 import { BoardMeta } from "@/types";
 import { listBoardsAction, createBoardAction } from "./actions";
 
-const BoardsPage = observer(function BoardsPage() {
+const BoardsPage = observer(() => {
   const router = useRouter();
   const pathname = usePathname();
   const [boards, setBoards] = useState<BoardMeta[]>([]);

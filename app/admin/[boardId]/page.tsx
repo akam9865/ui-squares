@@ -10,7 +10,7 @@ import { SquareManagement } from "@/components/SquareManagement";
 import { BoardSummary } from "@/components/BoardSummary";
 import { getClaimedSquaresAction } from "../actions";
 
-const AdminPage = observer(function AdminPage() {
+const AdminPage = observer(() => {
   const params = useParams<{ boardId: string }>();
   const boardId = params.boardId;
   const [squares, setSquares] = useState<Square[]>([]);

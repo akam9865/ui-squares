@@ -11,10 +11,10 @@ interface AuthenticatedLayoutProps {
   requireAdmin?: boolean;
 }
 
-export const AuthenticatedLayout = observer(function AuthenticatedLayout({
+export const AuthenticatedLayout = observer(({
   children,
   requireAdmin = false,
-}: AuthenticatedLayoutProps) {
+}: AuthenticatedLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams<{ boardId?: string }>();

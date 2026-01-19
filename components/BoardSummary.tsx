@@ -3,7 +3,7 @@
 import { observer } from "mobx-react-lite";
 import { boardStore } from "@/stores/BoardStore";
 
-export const BoardSummary = observer(function BoardSummary() {
+export const BoardSummary = observer(() => {
   const filledSquares = boardStore.filledSquaresCount;
   const emptySquares = boardStore.emptySquaresCount;
   const totalPaid = boardStore.totalPaidCount;

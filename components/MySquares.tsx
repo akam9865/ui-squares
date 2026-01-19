@@ -10,7 +10,7 @@ interface MySquaresProps {
   onSquareHover?: (square: { row: number; col: number } | null) => void;
 }
 
-export const MySquares = observer(function MySquares({ onSquareHover }: MySquaresProps) {
+export const MySquares = observer(({ onSquareHover }: MySquaresProps) => {
   const mySquares = gameComputedStore.mySquares;
   const mySquaresWithBadges = gameComputedStore.mySquaresWithBadges;
   const { amountOwed } = gameComputedStore.mySquaresPaymentInfo;

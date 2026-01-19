@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { gameComputedStore } from "@/stores/GameComputedStore";
 import { scoreStore } from "@/stores/ScoreStore";
 
-export const FutureWinners = observer(function FutureWinners() {
+export const FutureWinners = observer(() => {
   const scenarios = gameComputedStore.scoreChangeScenarios;
   const homeTeam = scoreStore.homeTeamAbbr;
   const awayTeam = scoreStore.awayTeamAbbr;

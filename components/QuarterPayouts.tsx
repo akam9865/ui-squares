@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { gameComputedStore } from "@/stores/GameComputedStore";
 import { WinningBadge } from "./WinningBadge";
 
-export const QuarterPayouts = observer(function QuarterPayouts() {
+export const QuarterPayouts = observer(() => {
   const winners = gameComputedStore.quarterWinners;
 
   return (

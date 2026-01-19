@@ -1,4 +1,11 @@
-export type Quarter = "Q1" | "Q2" | "Q3" | "F";
+export const Quarters = {
+  Q1: "Q1",
+  Q2: "Q2",
+  Q3: "Q3",
+  F: "F",
+} as const;
+
+export type Quarter = (typeof Quarters)[keyof typeof Quarters];
 
 export interface WinningBadgeProps {
   quarter: Quarter;

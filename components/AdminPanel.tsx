@@ -5,7 +5,7 @@ import { useState } from "react";
 import { authStore } from "@/stores/AuthStore";
 import { boardStore } from "@/stores/BoardStore";
 
-export const AdminPanel = observer(function AdminPanel() {
+export const AdminPanel = observer(() => {
   const [isRandomizing, setIsRandomizing] = useState(false);
 
   if (!authStore.isAdmin) {
