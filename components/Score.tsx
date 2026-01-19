@@ -51,32 +51,56 @@ export const Score = observer(function Score({
   const game = scoreStore.gameScore;
   if (!game) return null;
 
-  const getStatusText = () => {
-    if (game.status === "pre") return "Pregame";
-    if (game.status === "post") return "Final";
-    if (game.quarter === 1) return `1st ${game.clock}`;
-    if (game.quarter === 2) return `2nd ${game.clock}`;
-    if (game.quarter === 3) return `3rd ${game.clock}`;
-    if (game.quarter === 4) return `4th ${game.clock}`;
-    return `OT ${game.clock}`;
-  };
+  const otPeriods = scoreStore.otPeriods;
+  const isFinal = scoreStore.isGameOver;
 
   return (
     <div className="bg-white rounded-lg shadow p-4 text-sm">
-      <div className="text-center text-xs text-gray-500 mb-2">
-        {getStatusText()}
-      </div>
-      <div className="flex items-center justify-center gap-4">
-        <div className="text-center">
-          <div className="text-xs text-gray-600">{game.away.displayName}</div>
-          <div className="text-2xl font-bold text-gray-900">{game.away.score}</div>
-        </div>
-        <div className="text-gray-400 text-sm">@</div>
-        <div className="text-center">
-          <div className="text-xs text-gray-600">{game.home.displayName}</div>
-          <div className="text-2xl font-bold text-gray-900">{game.home.score}</div>
-        </div>
-      </div>
+      <table className="w-full text-center">
+        <thead>
+          <tr className="text-xs text-gray-500">
+            <th className="text-left py-1 font-medium">Team</th>
+            <th className="py-1 w-8 font-medium">1</th>
+            <th className="py-1 w-8 font-medium">2</th>
+            <th className="py-1 w-8 font-medium">3</th>
+            <th className="py-1 w-8 font-medium">4</th>
+            {Array.from({ length: otPeriods }, (_, i) => (
+              <th key={`ot-${i}`} className="py-1 w-8 font-medium">
+                {otPeriods === 1 ? "OT" : `O${i + 1}`}
+              </th>
+            ))}
+            <th className="py-1 w-10 font-medium">T</th>
+          </tr>
+        </thead>
+        <tbody className="text-sm">
+          <tr>
+            <td className="text-left py-1 font-medium">{game.away.team}</td>
+            <td className="py-1">{game.away.linescores[0] ?? "-"}</td>
+            <td className="py-1">{game.away.linescores[1] ?? "-"}</td>
+            <td className="py-1">{game.away.linescores[2] ?? "-"}</td>
+            <td className="py-1">{game.away.linescores[3] ?? "-"}</td>
+            {Array.from({ length: otPeriods }, (_, i) => (
+              <td key={`away-ot-${i}`} className="py-1">
+                {game.away.linescores[4 + i] ?? "-"}
+              </td>
+            ))}
+            <td className={`py-1 ${isFinal ? "font-bold" : ""}`}>{game.away.score}</td>
+          </tr>
+          <tr>
+            <td className="text-left py-1 font-medium">{game.home.team}</td>
+            <td className="py-1">{game.home.linescores[0] ?? "-"}</td>
+            <td className="py-1">{game.home.linescores[1] ?? "-"}</td>
+            <td className="py-1">{game.home.linescores[2] ?? "-"}</td>
+            <td className="py-1">{game.home.linescores[3] ?? "-"}</td>
+            {Array.from({ length: otPeriods }, (_, i) => (
+              <td key={`home-ot-${i}`} className="py-1">
+                {game.home.linescores[4 + i] ?? "-"}
+              </td>
+            ))}
+            <td className={`py-1 ${isFinal ? "font-bold" : ""}`}>{game.home.score}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 });

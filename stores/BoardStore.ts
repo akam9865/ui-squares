@@ -20,6 +20,54 @@ class BoardStore {
     makeAutoObservable(this);
   }
 
+  // Computed getters for board summary
+  get allSquaresFlat(): Square[] {
+    return this.squares.flat();
+  }
+
+  get filledSquaresCount(): number {
+    return this.allSquaresFlat.filter((s) => s.claimedBy).length;
+  }
+
+  get emptySquaresCount(): number {
+    return this.allSquaresFlat.filter((s) => !s.claimedBy).length;
+  }
+
+  get totalPaidCount(): number {
+    return this.allSquaresFlat.filter((s) => s.paid).length;
+  }
+
+  get userStats(): { displayName: string; totalSquares: number; paidSquares: number; unpaidSquares: number }[] {
+    const statsMap = new Map<string, { displayName: string; totalSquares: number; paidSquares: number; unpaidSquares: number }>();
+
+    for (const square of this.allSquaresFlat) {
+      if (square.claimedBy) {
+        const existing = statsMap.get(square.claimedBy);
+        if (existing) {
+          existing.totalSquares++;
+          if (square.paid) {
+            existing.paidSquares++;
+          } else {
+            existing.unpaidSquares++;
+          }
+        } else {
+          statsMap.set(square.claimedBy, {
+            displayName: square.displayName || square.claimedBy,
+            totalSquares: 1,
+            paidSquares: square.paid ? 1 : 0,
+            unpaidSquares: square.paid ? 0 : 1,
+          });
+        }
+      }
+    }
+
+    return Array.from(statsMap.values()).sort((a, b) => b.totalSquares - a.totalSquares);
+  }
+
+  get claimedSquares(): Square[] {
+    return this.allSquaresFlat.filter((s) => s.claimedBy);
+  }
+
   updateFromState(state: BoardState) {
     this.squares = state.squares;
     this.rowNumbers = state.rowNumbers;

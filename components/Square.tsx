@@ -10,9 +10,10 @@ interface SquareProps {
   square: SquareType;
   isWinning?: boolean;
   isHovered?: boolean;
+  winningBadges?: string[];
 }
 
-export const Square = observer(function Square({ square, isWinning = false, isHovered = false }: SquareProps) {
+export const Square = observer(function Square({ square, isWinning = false, isHovered = false, winningBadges = [] }: SquareProps) {
   const [isClaiming, setIsClaiming] = useState(false);
 
   const isClaimed = !!square.claimedBy;
@@ -61,6 +62,20 @@ export const Square = observer(function Square({ square, isWinning = false, isHo
       {isClaimed && square.paid && (
         <div className="absolute top-0.5 right-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
           <span className="text-[8px] font-bold text-white">P</span>
+        </div>
+      )}
+      {winningBadges.length > 0 && (
+        <div className="absolute bottom-0.5 left-0.5 flex gap-0.5 pointer-events-none">
+          {winningBadges.map((badge) => (
+            <div
+              key={badge}
+              className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                badge === "F" ? "bg-yellow-500" : "bg-purple-500"
+              }`}
+            >
+              <span className="text-[7px] font-bold text-white">{badge}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>

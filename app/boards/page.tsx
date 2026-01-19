@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { observer } from "mobx-react-lite";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { authStore } from "@/stores/AuthStore";
 import { BoardMeta } from "@/types";
@@ -222,7 +223,7 @@ const BoardsPage = observer(function BoardsPage() {
           ) : (
             <div className="divide-y">
               {boards.map((board) => (
-                <a
+                <Link
                   key={board.id}
                   href={`/board/${board.id}`}
                   className="block p-4 hover:bg-gray-50"
@@ -240,7 +241,7 @@ const BoardsPage = observer(function BoardsPage() {
                       {new Date(board.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           )}

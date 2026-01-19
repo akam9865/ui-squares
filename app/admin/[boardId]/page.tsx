@@ -2,16 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter, useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { authStore } from "@/stores/AuthStore";
+import { boardStore } from "@/stores/BoardStore";
 import { Square } from "@/types";
 import { SquareManagement } from "@/components/SquareManagement";
+import { BoardSummary } from "@/components/BoardSummary";
 import { getClaimedSquaresAction } from "../actions";
 
 const AdminPage = observer(function AdminPage() {
-  const router = useRouter();
   const params = useParams<{ boardId: string }>();
-  const pathname = usePathname();
   const boardId = params.boardId;
   const [squares, setSquares] = useState<Square[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,67 +28,39 @@ const AdminPage = observer(function AdminPage() {
   }, [boardId]);
 
   useEffect(() => {
-    authStore.checkSession();
-  }, []);
-
-  useEffect(() => {
-    if (!authStore.isLoading && !authStore.isAuthenticated) {
-      router.push(`/?redirect=${encodeURIComponent(pathname)}`);
-    } else if (!authStore.isLoading && !authStore.isAdmin) {
-      router.push(`/board/${boardId}`);
-    }
-  }, [authStore.isLoading, authStore.isAuthenticated, authStore.isAdmin, router, boardId, pathname]);
-
-  useEffect(() => {
     if (authStore.isAdmin) {
+      boardStore.startPolling(boardId);
       fetchSquares();
     }
-  }, [authStore.isAdmin, fetchSquares]);
+    return () => {
+      boardStore.stopPolling();
+    };
+  }, [authStore.isAdmin, boardId, fetchSquares]);
 
-  const handleLogout = async () => {
-    await authStore.logout();
-    router.push("/");
-  };
+  const handleUpdate = useCallback(() => {
+    fetchSquares();
+    boardStore.fetchBoard();
+  }, [fetchSquares]);
 
-  if (authStore.isLoading || isLoading) {
+  if (isLoading || boardStore.isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-64">
         <p className="text-gray-500">Loading...</p>
       </div>
     );
   }
 
-  if (!authStore.isAuthenticated || !authStore.isAdmin) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Admin Panel - {boardId}</h1>
-          <div className="flex items-center gap-4">
-            <a
-              href={`/board/${boardId}`}
-              className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded"
-            >
-              Back to Board
-            </a>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Square Management</h2>
-          <SquareManagement boardId={boardId} squares={squares} onUpdate={fetchSquares} />
-        </div>
+    <>
+      <div className="mb-6">
+        <BoardSummary />
       </div>
-    </div>
+
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold mb-4">Square Management</h2>
+        <SquareManagement boardId={boardId} squares={squares} onUpdate={handleUpdate} />
+      </div>
+    </>
   );
 });
 

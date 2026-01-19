@@ -30,9 +30,15 @@ const LoginPage = observer(function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-3xl font-bold mb-8">Squares Board Inc.</h1>
-      <LoginForm redirectTo={redirectTo || undefined} />
+    <div className="min-h-screen p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Squares Board Inc.</h1>
+        </div>
+        <div className="flex items-center justify-center" style={{ minHeight: "calc(100vh - 120px)" }}>
+          <LoginForm redirectTo={redirectTo || undefined} />
+        </div>
+      </div>
     </div>
   );
 });

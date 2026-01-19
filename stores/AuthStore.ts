@@ -5,12 +5,18 @@ class AuthStore {
   isAdmin: boolean = false;
   isAuthenticated: boolean = false;
   isLoading: boolean = true;
+  sessionChecked: boolean = false;
 
   constructor() {
     makeAutoObservable(this);
   }
 
   async checkSession() {
+    // Skip if already checked
+    if (this.sessionChecked) {
+      return;
+    }
+
     try {
       const response = await fetch("/api/session");
       const data = await response.json();
@@ -26,6 +32,7 @@ class AuthStore {
           this.isAuthenticated = false;
         }
         this.isLoading = false;
+        this.sessionChecked = true;
       });
     } catch {
       runInAction(() => {
@@ -33,6 +40,7 @@ class AuthStore {
         this.isAdmin = false;
         this.isAuthenticated = false;
         this.isLoading = false;
+        this.sessionChecked = true;
       });
     }
   }
@@ -74,6 +82,8 @@ class AuthStore {
         this.username = null;
         this.isAdmin = false;
         this.isAuthenticated = false;
+        this.sessionChecked = false;
+        this.isLoading = true;
       });
     }
   }

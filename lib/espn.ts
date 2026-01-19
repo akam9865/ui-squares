@@ -105,12 +105,14 @@ export interface GameInfo {
     name: string;
     displayName: string;
     score: number;
+    linescores: number[];
   };
   awayTeam: {
     abbreviation: string;
     name: string;
     displayName: string;
     score: number;
+    linescores: number[];
   };
   period: number;
   clock: string;
@@ -129,12 +131,14 @@ export function getGameInfo(event: ESPNEvent): GameInfo {
       name: homeTeam.team.name,
       displayName: homeTeam.team.displayName,
       score: parseInt(homeTeam.score, 10) || 0,
+      linescores: homeTeam.linescores?.map((ls) => ls.value) || [],
     },
     awayTeam: {
       abbreviation: awayTeam.team.abbreviation,
       name: awayTeam.team.name,
       displayName: awayTeam.team.displayName,
       score: parseInt(awayTeam.score, 10) || 0,
+      linescores: awayTeam.linescores?.map((ls) => ls.value) || [],
     },
     period: competition.status.period,
     clock: competition.status.displayClock,
