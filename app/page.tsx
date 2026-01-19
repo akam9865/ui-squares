@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { observer } from "mobx-react-lite";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
@@ -37,4 +37,16 @@ const LoginPage = observer(function LoginPage() {
   );
 });
 
-export default LoginPage;
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      }
+    >
+      <LoginPage />
+    </Suspense>
+  );
+}
