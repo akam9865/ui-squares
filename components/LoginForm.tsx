@@ -36,7 +36,7 @@ export const LoginForm = observer(({ redirectTo }: LoginFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
       <div>
         <label htmlFor="username" className="block text-sm font-medium mb-1">
-          Username
+          Display Name
         </label>
         <input
           id="username"
