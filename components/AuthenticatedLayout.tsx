@@ -33,11 +33,6 @@ export const AuthenticatedLayout = observer(({
     }
   }, [authStore.isLoading, authStore.isAuthenticated, authStore.isAdmin, router, pathname, boardId, requireAdmin]);
 
-  const handleLogout = async () => {
-    await authStore.logout();
-    router.push("/");
-  };
-
   if (authStore.isLoading && !authStore.sessionChecked) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -76,12 +71,6 @@ export const AuthenticatedLayout = observer(({
                 Manage Squares
               </Link>
             )}
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
-            >
-              Logout
-            </button>
           </div>
         </div>
         {children}

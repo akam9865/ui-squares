@@ -44,11 +44,6 @@ const BoardsPage = observer(() => {
     init();
   }, [router, fetchBoards, pathname]);
 
-  const handleLogout = async () => {
-    await authStore.logout();
-    router.push("/");
-  };
-
   const handleCreateBoard = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError("");
@@ -98,12 +93,6 @@ const BoardsPage = observer(() => {
               Welcome, {authStore.username}
               {authStore.isAdmin && " (Admin)"}
             </span>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
-            >
-              Logout
-            </button>
           </div>
         </div>
 
