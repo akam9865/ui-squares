@@ -1,13 +1,18 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { BoardState, Square } from "@/types";
+import { BoardState, Square, Sport } from "@/types";
 
 class BoardStore {
   squares: Square[][] = [];
   rowNumbers: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   colNumbers: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   numbersLocked: boolean = false;
+  gameId: string | null = null;
+  sport: Sport = "nfl";
+  name: string = "";
+  pricePerSquare: number = 10;
   isLoading: boolean = true;
   error: string | null = null;
+  boardId: string | null = null;
 
   private pollingInterval: NodeJS.Timeout | null = null;
 
@@ -20,11 +25,17 @@ class BoardStore {
     this.rowNumbers = state.rowNumbers;
     this.colNumbers = state.colNumbers;
     this.numbersLocked = state.numbersLocked;
+    this.gameId = state.gameId;
+    this.sport = state.sport;
+    this.name = state.name;
+    this.pricePerSquare = state.pricePerSquare;
   }
 
   async fetchBoard() {
+    if (!this.boardId) return;
+
     try {
-      const response = await fetch("/api/board");
+      const response = await fetch(`/api/board/${this.boardId}`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch board");
@@ -49,8 +60,12 @@ class BoardStore {
     row: number,
     col: number
   ): Promise<{ success: boolean; error?: string }> {
+    if (!this.boardId) {
+      return { success: false, error: "No board selected" };
+    }
+
     try {
-      const response = await fetch("/api/board", {
+      const response = await fetch(`/api/board/${this.boardId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ row, col }),
@@ -73,8 +88,12 @@ class BoardStore {
   }
 
   async randomizeNumbers(): Promise<{ success: boolean; error?: string }> {
+    if (!this.boardId) {
+      return { success: false, error: "No board selected" };
+    }
+
     try {
-      const response = await fetch("/api/admin/randomize", {
+      const response = await fetch(`/api/board/${this.boardId}/randomize`, {
         method: "POST",
       });
 
@@ -94,8 +113,12 @@ class BoardStore {
     }
   }
 
-  startPolling() {
-    if (this.pollingInterval) return;
+  startPolling(boardId: string) {
+    if (this.pollingInterval && this.boardId === boardId) return;
+
+    this.stopPolling();
+    this.boardId = boardId;
+    this.isLoading = true;
 
     this.fetchBoard();
     this.pollingInterval = setInterval(() => {

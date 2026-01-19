@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Super Bowl Squares",
-  description: "Super Bowl Squares Game",
+  title: "Squares Board Inc.",
+  description: "Squares Board Inc.",
 };
 
 export default function RootLayout({

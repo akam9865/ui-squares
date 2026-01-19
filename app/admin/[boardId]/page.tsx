@@ -2,27 +2,30 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { observer } from "mobx-react-lite";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { authStore } from "@/stores/AuthStore";
 import { Square } from "@/types";
 import { SquareManagement } from "@/components/SquareManagement";
-import { getClaimedSquaresAction } from "./actions";
+import { getClaimedSquaresAction } from "../actions";
 
 const AdminPage = observer(function AdminPage() {
   const router = useRouter();
+  const params = useParams<{ boardId: string }>();
+  const pathname = usePathname();
+  const boardId = params.boardId;
   const [squares, setSquares] = useState<Square[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSquares = useCallback(async () => {
     try {
-      const claimed = await getClaimedSquaresAction();
+      const claimed = await getClaimedSquaresAction(boardId);
       setSquares(claimed);
     } catch (err) {
       console.error("Failed to fetch squares:", err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [boardId]);
 
   useEffect(() => {
     authStore.checkSession();
@@ -30,11 +33,11 @@ const AdminPage = observer(function AdminPage() {
 
   useEffect(() => {
     if (!authStore.isLoading && !authStore.isAuthenticated) {
-      router.push("/");
+      router.push(`/?redirect=${encodeURIComponent(pathname)}`);
     } else if (!authStore.isLoading && !authStore.isAdmin) {
-      router.push("/board");
+      router.push(`/board/${boardId}`);
     }
-  }, [authStore.isLoading, authStore.isAuthenticated, authStore.isAdmin, router]);
+  }, [authStore.isLoading, authStore.isAuthenticated, authStore.isAdmin, router, boardId, pathname]);
 
   useEffect(() => {
     if (authStore.isAdmin) {
@@ -63,10 +66,10 @@ const AdminPage = observer(function AdminPage() {
     <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
+          <h1 className="text-2xl font-bold">Admin Panel - {boardId}</h1>
           <div className="flex items-center gap-4">
             <a
-              href="/board"
+              href={`/board/${boardId}`}
               className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded"
             >
               Back to Board
@@ -82,7 +85,7 @@ const AdminPage = observer(function AdminPage() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Square Management</h2>
-          <SquareManagement squares={squares} onUpdate={fetchSquares} />
+          <SquareManagement boardId={boardId} squares={squares} onUpdate={fetchSquares} />
         </div>
       </div>
     </div>

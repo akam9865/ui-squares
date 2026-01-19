@@ -2,16 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { Square } from "@/types";
-import { togglePaidAction, clearSquareAction } from "@/app/admin/actions";
+import { togglePaidAction, clearSquareAction, setOwnerAction } from "@/app/admin/actions";
 
 interface SquareManagementProps {
+  boardId: string;
   squares: Square[];
   onUpdate: () => void;
 }
 
-export function SquareManagement({ squares, onUpdate }: SquareManagementProps) {
+export function SquareManagement({ boardId, squares, onUpdate }: SquareManagementProps) {
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"all" | "paid" | "unpaid">("all");
+  const [editingSquare, setEditingSquare] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const filteredSquares = squares.filter((square) => {
     if (filter === "paid") return square.paid;
@@ -24,19 +27,44 @@ export function SquareManagement({ squares, onUpdate }: SquareManagementProps) {
 
   const handleTogglePaid = (square: Square) => {
     startTransition(async () => {
-      await togglePaidAction(square.row, square.col, !square.paid);
+      await togglePaidAction(boardId, square.row, square.col, !square.paid);
       onUpdate();
     });
   };
 
   const handleClear = (square: Square) => {
-    if (!confirm(`Clear square [${square.row}, ${square.col}] owned by ${square.owner}?`)) {
+    if (!confirm(`Clear square [${square.row}, ${square.col}] claimed by ${square.displayName}?`)) {
       return;
     }
     startTransition(async () => {
-      await clearSquareAction(square.row, square.col);
+      await clearSquareAction(boardId, square.row, square.col);
       onUpdate();
     });
+  };
+
+  const handleEditOwner = (square: Square) => {
+    const key = `${square.row}-${square.col}`;
+    setEditingSquare(key);
+    setEditValue(square.owner || "");
+  };
+
+  const handleSaveOwner = (square: Square) => {
+    startTransition(async () => {
+      await setOwnerAction(
+        boardId,
+        square.row,
+        square.col,
+        editValue.trim() || null
+      );
+      setEditingSquare(null);
+      setEditValue("");
+      onUpdate();
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSquare(null);
+    setEditValue("");
   };
 
   return (
@@ -79,6 +107,7 @@ export function SquareManagement({ squares, onUpdate }: SquareManagementProps) {
             <thead>
               <tr className="bg-gray-100">
                 <th className="border p-2 text-left">Position</th>
+                <th className="border p-2 text-left">Claimed By</th>
                 <th className="border p-2 text-left">Owner</th>
                 <th className="border p-2 text-left">Claimed</th>
                 <th className="border p-2 text-left">Status</th>
@@ -91,7 +120,46 @@ export function SquareManagement({ squares, onUpdate }: SquareManagementProps) {
                   <td className="border p-2">
                     [{square.row}, {square.col}]
                   </td>
-                  <td className="border p-2 font-medium">{square.owner}</td>
+                  <td className="border p-2 font-medium">{square.displayName}</td>
+                  <td className="border p-2">
+                    {editingSquare === `${square.row}-${square.col}` ? (
+                      <div className="flex gap-1">
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="w-24 px-2 py-1 text-sm border rounded text-black"
+                          placeholder="Owner"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveOwner(square);
+                            if (e.key === "Escape") handleCancelEdit();
+                          }}
+                        />
+                        <button
+                          onClick={() => handleSaveOwner(square)}
+                          disabled={isPending}
+                          className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-2 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded min-w-[80px]"
+                        onClick={() => handleEditOwner(square)}
+                        title="Click to edit"
+                      >
+                        {square.owner || <span className="text-gray-400 italic">-</span>}
+                      </div>
+                    )}
+                  </td>
                   <td className="border p-2 text-sm text-gray-600">
                     {square.claimedAt
                       ? new Date(square.claimedAt).toLocaleString()

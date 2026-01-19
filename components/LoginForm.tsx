@@ -5,7 +5,11 @@ import { observer } from "mobx-react-lite";
 import { authStore } from "@/stores/AuthStore";
 import { useRouter } from "next/navigation";
 
-export const LoginForm = observer(function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string;
+}
+
+export const LoginForm = observer(function LoginForm({ redirectTo }: LoginFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,7 +24,7 @@ export const LoginForm = observer(function LoginForm() {
     const result = await authStore.login(username, password);
 
     if (result.success) {
-      router.push("/board");
+      router.push(redirectTo || "/boards");
     } else {
       setError(result.error || "Login failed");
     }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Sport } from "@/types";
 
 const teamSchema = z.object({
   id: z.string(),
@@ -59,16 +60,28 @@ export type ESPNScoreboard = z.infer<typeof espnScoreboardSchema>;
 export type ESPNEvent = z.infer<typeof eventSchema>;
 export type ESPNCompetitor = z.infer<typeof competitorSchema>;
 
-const ESPN_SCOREBOARD_URL =
-  "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
+function getScoreboardUrl(sport: Sport): string {
+  if (sport === "cfb") {
+    return "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard";
+  }
+  return "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
+}
 
-export async function fetchNFLScores(): Promise<ESPNScoreboard> {
-  const response = await fetch(ESPN_SCOREBOARD_URL);
+export async function fetchScoreboard(sport: Sport): Promise<ESPNScoreboard> {
+  const response = await fetch(getScoreboardUrl(sport));
   if (!response.ok) {
     throw new Error(`Failed to fetch scores: ${response.status}`);
   }
   const data = await response.json();
   return espnScoreboardSchema.parse(data);
+}
+
+export async function fetchGameById(
+  gameId: string,
+  sport: Sport
+): Promise<ESPNEvent | null> {
+  const scoreboard = await fetchScoreboard(sport);
+  return scoreboard.events.find((event) => event.id === gameId) ?? null;
 }
 
 export function findGame(
@@ -86,32 +99,46 @@ export function findGame(
   );
 }
 
-export function findSuperBowlGame(scoreboard: ESPNScoreboard): ESPNEvent | null {
-  return findGame(scoreboard, "KC", "PHI");
-}
-
-export function getGameScores(event: ESPNEvent): {
-  home: { team: string; score: number };
-  away: { team: string; score: number };
-  quarter: number;
+export interface GameInfo {
+  homeTeam: {
+    abbreviation: string;
+    name: string;
+    displayName: string;
+    score: number;
+  };
+  awayTeam: {
+    abbreviation: string;
+    name: string;
+    displayName: string;
+    score: number;
+  };
+  period: number;
   clock: string;
   status: "pre" | "in" | "post";
-} {
+  shortName: string;
+}
+
+export function getGameInfo(event: ESPNEvent): GameInfo {
   const competition = event.competitions[0];
   const homeTeam = competition.competitors.find((c) => c.homeAway === "home")!;
   const awayTeam = competition.competitors.find((c) => c.homeAway === "away")!;
 
   return {
-    home: {
-      team: homeTeam.team.abbreviation,
+    homeTeam: {
+      abbreviation: homeTeam.team.abbreviation,
+      name: homeTeam.team.name,
+      displayName: homeTeam.team.displayName,
       score: parseInt(homeTeam.score, 10) || 0,
     },
-    away: {
-      team: awayTeam.team.abbreviation,
+    awayTeam: {
+      abbreviation: awayTeam.team.abbreviation,
+      name: awayTeam.team.name,
+      displayName: awayTeam.team.displayName,
       score: parseInt(awayTeam.score, 10) || 0,
     },
-    quarter: competition.status.period,
+    period: competition.status.period,
     clock: competition.status.displayClock,
     status: competition.status.type.state,
+    shortName: event.shortName,
   };
 }

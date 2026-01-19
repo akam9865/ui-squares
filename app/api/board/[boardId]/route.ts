@@ -2,18 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getBoardState, claimSquare } from "@/lib/redis";
 
-export async function GET() {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ boardId: string }> }
+) {
   const session = await getSession();
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const boardState = await getBoardState();
+  const { boardId } = await params;
+  const boardState = await getBoardState(boardId);
   return NextResponse.json(boardState);
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ boardId: string }> }
+) {
   const session = await getSession();
 
   if (!session) {
@@ -21,6 +28,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const { boardId } = await params;
     const { row, col } = await request.json();
 
     if (typeof row !== "number" || typeof col !== "number") {
@@ -37,13 +45,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await claimSquare(row, col, session.username);
+    const result = await claimSquare(boardId, row, col, session.username);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    const boardState = await getBoardState();
+    const boardState = await getBoardState(boardId);
     return NextResponse.json({ success: true, boardState });
   } catch {
     return NextResponse.json(

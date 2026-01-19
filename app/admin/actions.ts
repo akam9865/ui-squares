@@ -6,6 +6,8 @@ import {
   setSquarePaid,
   clearSquare,
   getBoardState,
+  setSquareDisplayName,
+  setSquareOwner,
 } from "@/lib/redis";
 import { Square, BoardState } from "@/types";
 
@@ -20,29 +22,51 @@ async function requireAdmin() {
   return session;
 }
 
-export async function getClaimedSquaresAction(): Promise<Square[]> {
+export async function getClaimedSquaresAction(boardId: string): Promise<Square[]> {
   await requireAdmin();
-  return getClaimedSquares();
+  return getClaimedSquares(boardId);
 }
 
-export async function getBoardStateAction(): Promise<BoardState> {
+export async function getBoardStateAction(boardId: string): Promise<BoardState> {
   await requireAdmin();
-  return getBoardState();
+  return getBoardState(boardId);
 }
 
 export async function togglePaidAction(
+  boardId: string,
   row: number,
   col: number,
   paid: boolean
 ): Promise<{ success: boolean; error?: string }> {
   await requireAdmin();
-  return setSquarePaid(row, col, paid);
+  return setSquarePaid(boardId, row, col, paid);
 }
 
 export async function clearSquareAction(
+  boardId: string,
   row: number,
   col: number
 ): Promise<{ success: boolean; error?: string }> {
   await requireAdmin();
-  return clearSquare(row, col);
+  return clearSquare(boardId, row, col);
+}
+
+export async function setDisplayNameAction(
+  boardId: string,
+  row: number,
+  col: number,
+  displayName: string | null
+): Promise<{ success: boolean; error?: string }> {
+  await requireAdmin();
+  return setSquareDisplayName(boardId, row, col, displayName);
+}
+
+export async function setOwnerAction(
+  boardId: string,
+  row: number,
+  col: number,
+  owner: string | null
+): Promise<{ success: boolean; error?: string }> {
+  await requireAdmin();
+  return setSquareOwner(boardId, row, col, owner);
 }
