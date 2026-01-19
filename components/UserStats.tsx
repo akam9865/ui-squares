@@ -11,7 +11,11 @@ interface UserStatsProps {
   onSquareHover?: (square: { row: number; col: number } | null) => void;
 }
 
-export const UserStats = observer(function UserStats({ homeTeam = "HOME", awayTeam = "AWAY", onSquareHover }: UserStatsProps) {
+export const UserStats = observer(function UserStats({
+  homeTeam = "HOME",
+  awayTeam = "AWAY",
+  onSquareHover,
+}: UserStatsProps) {
   const username = authStore.username;
 
   // Get all squares belonging to the current user
@@ -39,12 +43,14 @@ export const UserStats = observer(function UserStats({ homeTeam = "HOME", awayTe
     return (
       <div className="bg-white rounded-lg shadow p-4 text-sm">
         <h3 className="font-semibold mb-2">Your Squares</h3>
-        <p className="text-gray-500">You haven't claimed any squares yet.</p>
+        <p className="text-gray-500">
+          You haven&apos;t claimed any squares yet.
+        </p>
       </div>
     );
   }
 
-  const paidCount = mySquares.filter(s => s.paid).length;
+  const paidCount = mySquares.filter((s) => s.paid).length;
   const unpaidCount = mySquares.length - paidCount;
   const amountOwed = unpaidCount * boardStore.pricePerSquare;
 
@@ -62,7 +68,8 @@ export const UserStats = observer(function UserStats({ homeTeam = "HOME", awayTe
         </div>
         {unpaidCount > 0 && (
           <p className="text-xs text-gray-500 mt-1">
-            {paidCount} paid, {unpaidCount} unpaid @ ${boardStore.pricePerSquare}/sq
+            {paidCount} paid, {unpaidCount} unpaid @ $
+            {boardStore.pricePerSquare}/sq
           </p>
         )}
       </div>
@@ -76,7 +83,9 @@ export const UserStats = observer(function UserStats({ homeTeam = "HOME", awayTe
               <div
                 key={`${square.row}-${square.col}`}
                 className="py-1 border-b border-gray-100 last:border-0 text-gray-700 cursor-pointer hover:bg-gray-50"
-                onMouseEnter={() => onSquareHover?.({ row: square.row, col: square.col })}
+                onMouseEnter={() =>
+                  onSquareHover?.({ row: square.row, col: square.col })
+                }
                 onMouseLeave={() => onSquareHover?.(null)}
               >
                 {homeTeam} {nums.col}, {awayTeam} {nums.row}
