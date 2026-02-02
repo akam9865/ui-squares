@@ -8,6 +8,7 @@ import { boardStore } from "@/stores/BoardStore";
 import { Square } from "@/types";
 import { SquareManagement } from "@/components/SquareManagement";
 import { BoardSummary } from "@/components/BoardSummary";
+import { ShareLinkGenerator } from "@/components/ShareLinkGenerator";
 import { getClaimedSquaresAction } from "../actions";
 
 const AdminPage = observer(() => {
@@ -54,6 +55,10 @@ const AdminPage = observer(() => {
     <>
       <div className="mb-6">
         <BoardSummary />
+      </div>
+
+      <div className="mb-6">
+        <ShareLinkGenerator boardId={boardId} />
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">

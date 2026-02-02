@@ -36,3 +36,9 @@ export interface SessionData {
   username: string;
   isAdmin: boolean;
 }
+
+export interface ShareSession {
+  boardId: string;
+  shareToken: string;
+  displayName: string;
+}

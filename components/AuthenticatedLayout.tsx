@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import Link from "next/link";
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { useRouter, usePathname, useParams, useSearchParams } from "next/navigation";
 import { authStore } from "@/stores/AuthStore";
 
 interface AuthenticatedLayoutProps {
@@ -17,21 +17,27 @@ export const AuthenticatedLayout = observer(({
 }: AuthenticatedLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const params = useParams<{ boardId?: string }>();
   const boardId = params.boardId;
   const isAdminPage = pathname.startsWith("/admin");
+  const isBoardPage = pathname.startsWith("/board/");
+  const hasShareToken = searchParams.get("share") !== null;
 
   useEffect(() => {
     authStore.checkSession();
   }, []);
 
   useEffect(() => {
-    if (!authStore.isLoading && !authStore.isAuthenticated) {
+    // Skip auth redirect if this is a share link on a board page
+    const isShareAccess = isBoardPage && (hasShareToken || authStore.isShareUser);
+
+    if (!authStore.isLoading && !authStore.isAuthenticated && !isShareAccess) {
       router.push(`/?redirect=${encodeURIComponent(pathname)}`);
     } else if (requireAdmin && !authStore.isLoading && !authStore.isAdmin) {
       router.push(boardId ? `/board/${boardId}` : "/boards");
     }
-  }, [authStore.isLoading, authStore.isAuthenticated, authStore.isAdmin, router, pathname, boardId, requireAdmin]);
+  }, [authStore.isLoading, authStore.isAuthenticated, authStore.isAdmin, authStore.isShareUser, router, pathname, boardId, requireAdmin, isBoardPage, hasShareToken]);
 
   if (authStore.isLoading && !authStore.sessionChecked) {
     return (
@@ -41,7 +47,10 @@ export const AuthenticatedLayout = observer(({
     );
   }
 
-  if (!authStore.isAuthenticated) {
+  // Allow share users on board pages
+  const isShareAccess = isBoardPage && (hasShareToken || authStore.isShareUser);
+
+  if (!authStore.isAuthenticated && !isShareAccess) {
     return null;
   }
 
@@ -55,6 +64,11 @@ export const AuthenticatedLayout = observer(({
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Squares Board Inc.</h1>
           <div className="flex items-center gap-4">
+            {authStore.isShareUser && (
+              <span className="text-sm text-gray-600">
+                Viewing as: <span className="font-medium">{authStore.shareDisplayName}</span>
+              </span>
+            )}
             {isAdminPage && boardId && (
               <Link
                 href={`/board/${boardId}`}
@@ -63,7 +77,7 @@ export const AuthenticatedLayout = observer(({
                 Back to Board
               </Link>
             )}
-            {!isAdminPage && authStore.isAdmin && boardId && (
+            {!isAdminPage && authStore.isAdmin && boardId && !authStore.isShareUser && (
               <Link
                 href={`/admin/${boardId}`}
                 className="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 text-white rounded"

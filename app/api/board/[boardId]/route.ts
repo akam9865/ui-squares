@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
-import { getBoardState, claimSquare, unclaimSquare } from "@/lib/redis";
+import { getSession, getShareSession } from "@/lib/session";
+import { getBoardState, claimSquare, unclaimSquare, validateShareToken } from "@/lib/redis";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ boardId: string }> }
 ) {
+  const { boardId } = await params;
   const session = await getSession();
+  const shareSession = await getShareSession();
 
-  if (!session) {
+  // Check for share token in query params (allows viewing board before setting display name)
+  const shareToken = request.nextUrl.searchParams.get("share");
+  const hasValidShareToken = shareToken ? await validateShareToken(boardId, shareToken) : false;
+
+  // Allow access if authenticated, has valid share session, or has valid share token
+  if (!session && (!shareSession || shareSession.boardId !== boardId) && !hasValidShareToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { boardId } = await params;
   const boardState = await getBoardState(boardId);
   return NextResponse.json(boardState);
 }
@@ -21,14 +27,23 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ boardId: string }> }
 ) {
+  const { boardId } = await params;
   const session = await getSession();
+  const shareSession = await getShareSession();
 
-  if (!session) {
+  // Determine username: prefer regular session, fall back to share session
+  let username: string | null = null;
+  if (session) {
+    username = session.username;
+  } else if (shareSession && shareSession.boardId === boardId) {
+    username = shareSession.displayName;
+  }
+
+  if (!username) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { boardId } = await params;
     const { row, col } = await request.json();
 
     if (typeof row !== "number" || typeof col !== "number") {
@@ -45,7 +60,7 @@ export async function POST(
       );
     }
 
-    const result = await claimSquare(boardId, row, col, session.username);
+    const result = await claimSquare(boardId, row, col, username);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
@@ -67,6 +82,7 @@ export async function DELETE(
 ) {
   const session = await getSession();
 
+  // Share users cannot unclaim - only regular authenticated users
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

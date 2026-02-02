@@ -18,8 +18,12 @@ export const Square = observer(({ square, isWinning = false, isHovered = false, 
   const [isClaiming, setIsClaiming] = useState(false);
 
   const isClaimed = !!square.claimedBy;
-  const isClaimedByMe = square.claimedBy === authStore.username;
-  const canUnclaim = isClaimedByMe && !square.paid;
+  // For share users, check against shareDisplayName instead of username
+  const isClaimedByMe = authStore.isShareUser
+    ? square.claimedBy === authStore.shareDisplayName
+    : square.claimedBy === authStore.username;
+  // Share users cannot unclaim
+  const canUnclaim = isClaimedByMe && !square.paid && !authStore.isShareUser;
 
   const handleClick = async () => {
     if (isClaiming) return;

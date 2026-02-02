@@ -13,6 +13,7 @@ class BoardStore {
   isLoading: boolean = true;
   error: string | null = null;
   boardId: string | null = null;
+  shareToken: string | null = null;
 
   private pollingInterval: NodeJS.Timeout | null = null;
 
@@ -83,7 +84,10 @@ class BoardStore {
     if (!this.boardId) return;
 
     try {
-      const response = await fetch(`/api/board/${this.boardId}`);
+      const url = this.shareToken
+        ? `/api/board/${this.boardId}?share=${this.shareToken}`
+        : `/api/board/${this.boardId}`;
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error("Failed to fetch board");
@@ -190,6 +194,10 @@ class BoardStore {
     } catch {
       return { success: false, error: "Failed to randomize numbers" };
     }
+  }
+
+  setShareToken(token: string | null) {
+    this.shareToken = token;
   }
 
   startPolling(boardId: string) {

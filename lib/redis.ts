@@ -424,3 +424,18 @@ export async function getClaimedSquares(boardId: string): Promise<Square[]> {
 
   return claimed;
 }
+
+function getShareTokensKey(boardId: string): string {
+  return `board:${boardId}:shareTokens`;
+}
+
+export async function createShareToken(boardId: string): Promise<string> {
+  const token = crypto.randomUUID();
+  await redis.sadd(getShareTokensKey(boardId), token);
+  return token;
+}
+
+export async function validateShareToken(boardId: string, token: string): Promise<boolean> {
+  const isMember = await redis.sismember(getShareTokensKey(boardId), token);
+  return Boolean(isMember);
+}

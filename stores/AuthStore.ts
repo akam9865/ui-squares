@@ -7,8 +7,16 @@ class AuthStore {
   isLoading: boolean = true;
   sessionChecked: boolean = false;
 
+  // Share session state
+  shareDisplayName: string | null = null;
+  shareBoardId: string | null = null;
+
   constructor() {
     makeAutoObservable(this);
+  }
+
+  get isShareUser(): boolean {
+    return this.shareDisplayName !== null && !this.isAuthenticated;
   }
 
   async checkSession() {
@@ -85,6 +93,53 @@ class AuthStore {
         this.sessionChecked = false;
         this.isLoading = true;
       });
+    }
+  }
+
+  async checkShareSession(boardId: string): Promise<boolean> {
+    try {
+      const response = await fetch(`/api/share/${boardId}/session`);
+      const data = await response.json();
+
+      if (data.valid) {
+        runInAction(() => {
+          this.shareDisplayName = data.displayName;
+          this.shareBoardId = boardId;
+        });
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  async setShareDisplayName(
+    displayName: string,
+    shareToken: string,
+    boardId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`/api/share/${boardId}/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName, shareToken }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error };
+      }
+
+      runInAction(() => {
+        this.shareDisplayName = data.displayName;
+        this.shareBoardId = boardId;
+      });
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "Failed to set display name" };
     }
   }
 }
