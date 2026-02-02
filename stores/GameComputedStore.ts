@@ -174,12 +174,15 @@ class GameComputedStore {
   }
 
   get mySquares(): Square[] {
-    const username = authStore.username;
+    // Use username for authenticated users, shareDisplayName for share users
+    const identifier = authStore.username || authStore.shareDisplayName;
+    if (!identifier) return [];
+
     const squares: Square[] = [];
 
     for (const row of boardStore.squares) {
       for (const square of row) {
-        if (square.claimedBy === username) {
+        if (square.claimedBy === identifier) {
           squares.push(square);
         }
       }
@@ -248,7 +251,7 @@ class GameComputedStore {
     const awayScore = game.away.score;
     const homeTeam = scoreStore.homeTeamAbbr;
     const awayTeam = scoreStore.awayTeamAbbr;
-    const username = authStore.username;
+    const identifier = authStore.username || authStore.shareDisplayName;
 
     const scenarios: { label: string; homeDelta: number; awayDelta: number }[] = [
       { label: `${homeTeam} TD`, homeDelta: 7, awayDelta: 0 },
@@ -280,7 +283,7 @@ class GameComputedStore {
         displayName: square?.displayName || square?.claimedBy || null,
         homeNum: newHomeScore % 10,
         awayNum: newAwayScore % 10,
-        isMine: square?.claimedBy === username,
+        isMine: square?.claimedBy === identifier,
       };
     });
   }

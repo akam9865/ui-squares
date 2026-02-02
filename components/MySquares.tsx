@@ -19,18 +19,16 @@ export const MySquares = observer(({ onSquareHover }: MySquaresProps) => {
 
   return (
     <div className="bg-white rounded-lg shadow p-4 text-sm">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-3">
         <h3 className="font-semibold">My Squares</h3>
-        <div className="text-right">
-          <span className="text-gray-600">{mySquares.length} squares</span>
+        <div className="flex justify-between items-center text-gray-600 mt-1">
+          <span>{mySquares.length} squares</span>
           {mySquares.length > 0 && (
-            <span className="ml-2">
-              {amountOwed > 0 ? (
-                <span className="text-red-600 font-medium">${amountOwed} owed</span>
-              ) : (
-                <span className="text-green-600 font-medium">Paid</span>
-              )}
-            </span>
+            amountOwed > 0 ? (
+              <span className="text-red-600 font-medium">${amountOwed} owed</span>
+            ) : (
+              <span className="text-green-600 font-medium">Paid</span>
+            )
           )}
         </div>
       </div>
