@@ -22,8 +22,46 @@ export const Board = observer(({ boardId, hoveredSquare }: BoardProps) => {
 
   if (boardStore.isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Loading board...</p>
+      <div className="inline-block animate-pulse">
+        {/* Team name skeleton */}
+        <div className="mb-2 text-center ml-20">
+          <div className="h-6 w-32 bg-gray-200 rounded mx-auto" />
+        </div>
+
+        {/* Column numbers skeleton */}
+        <div className="flex">
+          <div className="w-20" />
+          {Array(10).fill(0).map((_, idx) => (
+            <div key={idx} className="w-16 h-10 flex items-center justify-center">
+              <div className="h-5 w-5 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex">
+          {/* Away team name skeleton */}
+          <div className="w-8 flex items-center justify-center">
+            <div className="h-24 w-5 bg-gray-200 rounded" />
+          </div>
+
+          {/* Row numbers skeleton */}
+          <div className="flex flex-col">
+            {Array(10).fill(0).map((_, idx) => (
+              <div key={idx} className="w-12 h-16 flex items-center justify-center">
+                <div className="h-5 w-5 bg-gray-200 rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Grid skeleton */}
+          <div className="grid grid-cols-10 gap-0">
+            {Array(100).fill(0).map((_, idx) => (
+              <div key={idx} className="w-16 h-16 p-0.5">
+                <div className="w-full h-full bg-gray-200 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

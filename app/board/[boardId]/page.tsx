@@ -26,10 +26,10 @@ const BoardPage = observer(() => {
   const [showDisplayNamePrompt, setShowDisplayNamePrompt] = useState(false);
   const [shareSessionChecked, setShareSessionChecked] = useState(false);
 
-  // Set share token on store for API requests
-  useEffect(() => {
+  // Set share token immediately (before Board mounts and starts polling)
+  if (boardStore.shareToken !== shareToken) {
     boardStore.setShareToken(shareToken);
-  }, [shareToken]);
+  }
 
   // Check for existing share session when share token is present
   useEffect(() => {
