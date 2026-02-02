@@ -61,8 +61,9 @@ const BoardPage = observer(() => {
         />
       )}
 
-      <div className="flex justify-center gap-6 mt-20">
-        <div className="flex flex-col gap-4 w-64">
+      <div className="mt-16 lg:mt-20 px-4 lg:px-0">
+        {/* Mobile: Score at top */}
+        <div className="lg:hidden mb-4">
           {boardStore.gameId && (
             <Score
               gameId={boardStore.gameId}
@@ -70,10 +71,43 @@ const BoardPage = observer(() => {
               pollInterval={10000}
             />
           )}
-          <MySquares onSquareHover={setHoveredSquare} />
         </div>
-        <Board boardId={boardId} hoveredSquare={hoveredSquare} />
-        <div className="flex flex-col gap-4 w-64">
+
+        {/* Desktop: 3-column layout, Mobile: stacked */}
+        <div className="flex flex-col lg:flex-row justify-center gap-4 lg:gap-6">
+          {/* Left sidebar - hidden on mobile */}
+          <div className="hidden lg:flex flex-col gap-4 w-64">
+            {boardStore.gameId && (
+              <Score
+                gameId={boardStore.gameId}
+                sport={boardStore.sport}
+                pollInterval={10000}
+              />
+            )}
+            <MySquares onSquareHover={setHoveredSquare} />
+          </div>
+
+          {/* Board - horizontally scrollable on mobile */}
+          <div className="overflow-x-auto lg:overflow-visible">
+            <div className="inline-block min-w-max">
+              <Board boardId={boardId} hoveredSquare={hoveredSquare} />
+            </div>
+          </div>
+
+          {/* Right sidebar - hidden on mobile */}
+          <div className="hidden lg:flex flex-col gap-4 w-64">
+            {boardStore.gameId && (
+              <>
+                <QuarterPayouts />
+                <FutureWinners />
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile: panels below board */}
+        <div className="lg:hidden mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <MySquares onSquareHover={setHoveredSquare} />
           {boardStore.gameId && (
             <>
               <QuarterPayouts />
