@@ -6,7 +6,7 @@ const teamSchema = z.object({
   abbreviation: z.string(),
   displayName: z.string(),
   shortDisplayName: z.string(),
-  name: z.string(),
+  name: z.string().optional(),
   logo: z.string().optional(),
 });
 
@@ -80,8 +80,23 @@ export async function fetchGameById(
   gameId: string,
   sport: Sport
 ): Promise<ESPNEvent | null> {
+  // Try default scoreboard first
   const scoreboard = await fetchScoreboard(sport);
-  return scoreboard.events.find((event) => event.id === gameId) ?? null;
+  const game = scoreboard.events.find((event) => event.id === gameId);
+  if (game) return game;
+
+  // For NFL, try Super Bowl week (week 5 of postseason) if not found
+  if (sport === "nfl") {
+    const superBowlUrl = `${getScoreboardUrl(sport)}?week=5&seasontype=3`;
+    const response = await fetch(superBowlUrl);
+    if (response.ok) {
+      const data = await response.json();
+      const superBowlScoreboard = espnScoreboardSchema.parse(data);
+      return superBowlScoreboard.events.find((event) => event.id === gameId) ?? null;
+    }
+  }
+
+  return null;
 }
 
 export function findGame(
@@ -128,14 +143,14 @@ export function getGameInfo(event: ESPNEvent): GameInfo {
   return {
     homeTeam: {
       abbreviation: homeTeam.team.abbreviation,
-      name: homeTeam.team.name,
+      name: homeTeam.team.name ?? homeTeam.team.displayName,
       displayName: homeTeam.team.displayName,
       score: parseInt(homeTeam.score, 10) || 0,
       linescores: homeTeam.linescores?.map((ls) => ls.value) || [],
     },
     awayTeam: {
       abbreviation: awayTeam.team.abbreviation,
-      name: awayTeam.team.name,
+      name: awayTeam.team.name ?? awayTeam.team.displayName,
       displayName: awayTeam.team.displayName,
       score: parseInt(awayTeam.score, 10) || 0,
       linescores: awayTeam.linescores?.map((ls) => ls.value) || [],
